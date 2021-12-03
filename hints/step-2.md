@@ -242,8 +242,8 @@ Comment: MySQL on AWS
 General:
   Host: <endpoint-of-rds>
   Port: 3306
-  User: admin
-  Password: akyBULhfbzQpqUw-wuvwDL7D2MsCMi3e
+  User: <rds-admin-user>
+  Password: <rds-admin-password>
   Save: Forever
   Database: <empty>
 
@@ -417,9 +417,9 @@ Caused by: java.net.ConnectException: Connection refused
 Create file `/opt/product-service/app.properties` and place to it
 
 ```properties
-spring.datasource.url=jdbc:mysql://localhost:3306/service_db
-spring.datasource.username=product_app
-spring.datasource.password=4yRuVLm7UPvbbNu----CPBX36RXCXHsUNnY3
+spring.datasource.url=jdbc:mysql://<rds-endpoint>:3306/service_db
+spring.datasource.username=<rds-app-user>
+spring.datasource.password=<rds-app-password>
     
 app.files.location=/var/product-files/
 

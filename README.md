@@ -56,8 +56,8 @@ Goal is to deploy application as it is.
    * Instance Class: db.t3.micro
    * Storage: General Purpose - 20GiB
    * Multi-AZ deployment: Do not create a standby instance
-   * User: admin
-   * Password: akyBULhfbzQpqUw-wuvwDL7D2MsCMi3e
+   * User: <rds-admin-user>
+   * Password: <rds-admin-password>
    * Tags:
       * Role: Workshop
 1. Create EC2 instance, install java.
