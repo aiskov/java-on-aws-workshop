@@ -1,0 +1,33 @@
+app:
+  files:
+    location: ./env/files
+
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      'hibernate.dialect': org.hibernate.dialect.MySQL5Dialect
+    show-sql: true
+
+  datasource:
+    driver-class-name: com.mysql.jdbc.Driver
+
+    url: jdbc:mysql://localhost:3306/service_db
+
+    username: root
+    password: toor
+
+  sql:
+    init:
+      platform: mysql
+
+  mvc:
+    view:
+      prefix: /templates/
+      suffix:
+
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
