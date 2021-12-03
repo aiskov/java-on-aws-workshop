@@ -49,7 +49,6 @@ Goal is understood how application works.
 Goal is to deploy application as it is.
 
 
-
 **ToDo:**
 
 1. Create RDS database. (Expected price: 15 USD/month)
@@ -138,6 +137,11 @@ TBD
 
 TBD
 
-### Step 12 - Migrate docer part to Kubernates
+### Step 12 - Migrate docker part to Kubernates
 
 TBD
+
+### Step 13 - Automate configuration
+
+#### Option 1: Using CloudFormation
+#### Option 2: Using Terraform
