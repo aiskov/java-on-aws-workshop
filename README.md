@@ -86,11 +86,15 @@ Goal is to deploy application as it is.
 
 Control Questions:
 1. Describe configuration properties that will be different on production and why?
+1. What could be a problem for that installation? 
+1. How we can scale that application?
+1. Is our data in safe?
 
 Achievements:
 
 1. We have managed database, so we have simplified maintains of installation.
 1. Application deployed on cloud.
+1. We have basic failover for cases when application failures or server could be restarted.
 
 ### Step 3 - Use multiple instance
 
