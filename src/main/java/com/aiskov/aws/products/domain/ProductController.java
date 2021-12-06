@@ -21,10 +21,15 @@ import static org.springframework.http.MediaType.parseMediaType;
 @Controller
 @RequiredArgsConstructor
 public class ProductController {
+    private static final String HOST_NAME = System.getenv("HOSTNAME");
+
     private final ProductService productService;
 
     @Value("${app.files.location}")
-    private String filesLocation = "env/files/";
+    private String filesLocation;
+
+    @Value("${app.version}")
+    private String appVersion;
 
     @GetMapping("/")
     public ModelAndView list() {
@@ -32,6 +37,8 @@ public class ProductController {
 
         modelAndView.setViewName("list.html");
         modelAndView.addObject("products", this.productService.getProducts());
+        modelAndView.addObject("version", this.appVersion);
+        modelAndView.addObject("hostname", HOST_NAME);
 
         return modelAndView;
     }

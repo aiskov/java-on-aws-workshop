@@ -100,16 +100,33 @@ Achievements:
 
 ### Step 3 - Use multiple instance [hints](hints/step-3.md)
 
+Goal is to create instalation that deployed in several Availability Zones, use Load Balancer and Auto Scaling in order to keep high availability and adapt deployment to load. 
+
+In order to minmize costs we will use spot instances.
+
+Faster deployment will be done using AMI and User Data that will load last version of artifact from S3 artifact-store bucket. 
+
+Data will be shared using network file system - EFS.
+
+**ToDo:**
+
 1. Create load balancer
 2. Store artifacts in S3
-3. Automate node configuration
+   1. Bucket name: `artifact-store-<some-unique-id>`
+   2. Put your jar to bucket 
+
+3. Externalize application configuration
+   1. Use AWS Param Store in order to store properties
+   2. https://towardsaws.com/how-to-externalize-spring-boot-properties-to-an-aws-system-manager-parameter-store-2a945b1e856f
+
+4. Automate node configuration
    1. Create AMI
    2. Add User Data
-4. Store data in EFS
-5. Configure multiple instance
+5. Store data in EFS
+6. Configure multiple instance
    1. One on demand instance
    2. +2 spot instances
-6. Configure auto scaling
+7. Configure auto scaling
 
 ### Step 4 - Introduce CI/CD 
 

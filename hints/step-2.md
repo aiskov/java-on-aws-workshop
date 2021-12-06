@@ -441,7 +441,7 @@ On instance:
 ```bash
 > cd /opt/product-service # Go to app directory
 > java -jar products-1.jar \
-	--spring.config.location=file:./app.properties # Run application
+  --spring.config.import=app.properties  # Run application
 ```
 
 ## Make service from application
@@ -464,7 +464,7 @@ Group=ubuntu
 Type=simple
 
 WorkingDirectory=/opt/product-service
-ExecStart=java -jar products-1.jar --spring.config.location=file:./app.properties
+ExecStart=java -jar products-1.jar --spring.config.import=app.properties
 ExecStop=/bin/kill -15 $MAINPID
 
 Restart=always
@@ -533,7 +533,7 @@ Try to kill process to verify restart. On instance:
       Tasks: 14 (limit: 1147)
      Memory: 114.2M
      CGroup: /system.slice/app-product.service
-             └─945 /usr/bin/java -jar products-1.jar --spring.config.location=file:./app.properties
+             └─945 /usr/bin/java -jar products-1.jar --spring.config.import=app.properties
    
 ...
 > sudo kill 945 # Kill process, it will simulate failure of java or application server
@@ -547,7 +547,7 @@ Then if you will check status you may take different responses, first option tha
 ● app-product.service - Product service application
      Loaded: loaded (/etc/systemd/system/app-product.service; disabled; vendor preset: enabled)
      Active: activating (auto-restart) (Result: exit-code) since Fri 2021-12-03 09:57:21 UTC; 4s ago
-    Process: 945 ExecStart=/usr/bin/java -jar products-1.jar --spring.config.location=file:./app.properties (code=exited, status=143)
+    Process: 945 ExecStart=/usr/bin/java -jar products-1.jar --spring.config.import=app.properties (code=exited, status=143)
     Process: 977 ExecStop=/bin/kill -15 $MAINPID (code=exited, status=1/FAILURE)
    Main PID: 945 (code=exited, status=143)
    
@@ -565,7 +565,7 @@ sudo systemctl status app-product.service
       Tasks: 14 (limit: 1147)
      Memory: 45.6M
      CGroup: /system.slice/app-product.service
-             └─983 /usr/bin/java -jar products-1.jar --spring.config.location=file:./app.properties
+             └─983 /usr/bin/java -jar products-1.jar --spring.config.import=app.properties
              
 ...
 ```

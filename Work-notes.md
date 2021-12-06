@@ -48,5 +48,9 @@ ELB:
 	Security Group:
 		Id: # Example: sg-1f0a255d
 		
+S3:
+  - Name: # Example artifact-store-c1e9d789d801
+    ARN: # arn:aws:s3:::artifact-store-c1e9d789d801
+    URI: # Example s3://artifact-store-c1e9d789d801
 ```
 

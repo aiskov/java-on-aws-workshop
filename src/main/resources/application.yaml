@@ -1,4 +1,5 @@
 app:
+  version: 0.1
   files:
     location: ./env/files
 
