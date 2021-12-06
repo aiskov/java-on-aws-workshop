@@ -1,0 +1,6 @@
+aws:
+  paramstore:
+    enabled: true # Switch it to false if you want to work ofline
+    name: product-service
+    prefix: /config
+    profileSeparator: _
