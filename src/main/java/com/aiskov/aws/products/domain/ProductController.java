@@ -2,6 +2,7 @@ package com.aiskov.aws.products.domain;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.env.Environment;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -28,8 +29,7 @@ public class ProductController {
     @Value("${app.files.location}")
     private String filesLocation;
 
-    @Value("${app.version}")
-    private String appVersion;
+    private final Environment environment;
 
     @GetMapping("/")
     public ModelAndView list() {
@@ -37,7 +37,7 @@ public class ProductController {
 
         modelAndView.setViewName("list.html");
         modelAndView.addObject("products", this.productService.getProducts());
-        modelAndView.addObject("version", this.appVersion);
+        modelAndView.addObject("version", this.environment.getProperty("app.version", "-"));
         modelAndView.addObject("hostname", HOST_NAME);
 
         return modelAndView;
