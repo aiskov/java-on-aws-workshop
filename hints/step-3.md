@@ -1,6 +1,6 @@
 [TOC]
 
-##Create load balancer
+## Create load balancer
 
 * Go to `EC2/Network & Security/Security Groups`
 * Click `Create Security Group`
@@ -11,21 +11,21 @@ Description: Group for Load Balancer
 VPC: <vpc-id>
 
 Inbound rules:
-- Type: HTTP
-	Protocol: TCP
-	Port Range: 80
-	Source: Anywhere 0.0.0.0/0
+  - Type: HTTP
+    Protocol: TCP
+    Port Range: 80
+    Source: Anywhere 0.0.0.0/0
 
-- Type: HTTPS
-	Protocol: TCP
-  Port Range: 443
-  Source: Anywhere 0.0.0.0/0
+  - Type: HTTPS
+    Protocol: TCP
+    Port Range: 443
+    Source: Anywhere 0.0.0.0/0
 
 Outbound rules:
-	- Type: All Traffic
+  - Type: All Traffic
 
 Tags: 
-	Role: Workshop
+  Role: Workshop
 ```
 
 * Go to `EC2/Load Balancing/Target Group`
