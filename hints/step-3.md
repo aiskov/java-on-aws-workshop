@@ -90,4 +90,5 @@ Tags:
 ```
 
 * Wait until ELB `state` will be `Active`.
+* Now you can use ELB - host and port `80` to access to the your service. 
 
