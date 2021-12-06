@@ -221,52 +221,218 @@ Role description: Dedicated role for Product Service instances
 
 ## Externalize application configuration
 
+### Create properties
+
 * Go to `Systems Manager/Application Management/Parameter Store`
 * Click `Create parameter`
 * Transfer properties from the propertiws file to the 
 
 ```yaml
-- Name: /product-service/prod/spring.datasource.url
+- Name: /config/product-service_prod/spring.datasource.url
 	Tier: Standard
 	Type: String
   Data Type: text
 	Value: jdbc:mysql://<rds-endpoint>:3306/service_db
 
-- Name: /product-service/prod/spring.datasource.username
+- Name: /config/product-service_prod/spring.datasource.username
 	Tier: Standard
 	Type: String
   Data Type: text
 	Value: <rds-app-user>
 
-- Name: /product-service/prod/spring.datasource.password
+- Name: /config/product-service_prod/spring.datasource.password
 	Tier: Standard
 	Type: SecureString
   KMS key source: My current account
   KMS key ID: alias/aws/ssm
 	Value: <rds-app-password>
 
-- Name: /product-service/prod/app.files.location
+- Name: /config/product-service_prod/app.files.location
 	Tier: Standard
 	Type: String
   Data Type: text
 	Value: /var/product-files/
 
-- Name: /product-service/prod/logging.file.name
+- Name: /config/product-service_prod/logging.file.name
 	Tier: Standard
 	Type: String
   Data Type: text
 	Value: /var/log/product-service.log
 ```
 
+### Adopt application to connect
+
+Modify  `pom.xml`
+
+```xml
+	<properties>
+    ...
+		<spring-cloud.version>2020.0.4</spring-cloud.version>
+	</properties>
+
+...
+ 
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>org.springframework.cloud</groupId>
+				<artifactId>spring-cloud-dependencies</artifactId>
+				<version>${spring-cloud.version}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
+
+...
+  <dependencies>
+    ...
+    <dependency>
+			<groupId>org.springframework.cloud</groupId>
+			<artifactId>spring-cloud-starter</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.cloud</groupId>
+			<artifactId>spring-cloud-starter-bootstrap</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.cloud</groupId>
+			<artifactId>spring-cloud-starter-aws-parameter-store-config</artifactId>
+			<version>2.2.6.RELEASE</version>
+		</dependency>
+    ...
+  </dependencies>
+...
+```
+
+Add `src/main/resources/bootstrap.yaml`
+
+```yaml
+aws:
+  paramstore:
+    enabled: true # Switch it to false if you want to work ofline
+    name: product-service
+    prefix: /config
+    profileSeparator: _
+```
+
+### Verify that properties loaded from AWS
+
+* Add new property
+
+```yaml
+- Name: /config/product-service/server.port
+	Tier: Standard
+	Type: String
+  Data Type: text
+	Value: 8888
+```
+
+* Start application locally, it should start to use 8888 port.
+
+### Refresh propeties without restart
+
+* Modify `application.yaml` to expose `refresh` endpoint. 
+
+```yaml
+management:
+  endpoints:
+    web:
+      exposure:
+        include: env, refresh
+```
+
+* Start application locally.
+* Change server.port to `9999`
+
+```yaml
+- Name: /config/product-service/server.port
+	Tier: Standard
+	Type: String
+  Data Type: text
+	Value: 9999
+```
+
+* Add new property
+
+```yaml
+- Name: /config/product-service/app.version
+	Tier: Standard
+	Type: String
+  Data Type: text
+	Value: TEST
+```
+
+* Refresh context
+
+```bash
+> curl -X POST http://127.0.0.1:8888/actuator/refresh
+["app.version", "server.port"]
+```
+
+* Now you could check that port and version shown after login is still the same.
+
+* Update java code to resolve properties dynamically 
+
+```java
+Index: src/main/java/com/aiskov/aws/products/domain/ProductController.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/main/java/com/aiskov/aws/products/domain/ProductController.java b/src/main/java/com/aiskov/aws/products/domain/ProductController.java
+--- a/src/main/java/com/aiskov/aws/products/domain/ProductController.java	(revision 0665a55e95fcff0326a419dfe26ea5f995e54dee)
++++ b/src/main/java/com/aiskov/aws/products/domain/ProductController.java	(date 1638826059656)
+@@ -2,6 +2,7 @@
+ 
+ import lombok.RequiredArgsConstructor;
+ import org.springframework.beans.factory.annotation.Value;
++import org.springframework.core.env.Environment;
+ import org.springframework.core.io.FileSystemResource;
+ import org.springframework.http.ResponseEntity;
+ import org.springframework.stereotype.Controller;
+@@ -28,8 +29,7 @@
+     @Value("${app.files.location}")
+     private String filesLocation;
+ 
+-    @Value("${app.version}")
+-    private String appVersion;
++    private final Environment environment;
+ 
+     @GetMapping("/")
+     public ModelAndView list() {
+@@ -37,7 +37,7 @@
+ 
+         modelAndView.setViewName("list.html");
+         modelAndView.addObject("products", this.productService.getProducts());
+-        modelAndView.addObject("version", this.appVersion);
++        modelAndView.addObject("version", this.environment.getProperty("app.version", "-"));
+         modelAndView.addObject("hostname", HOST_NAME);
+ 
+         return modelAndView;
 
 
+```
+* Restart application
+* Remove properties:
+  * `/config/product-service/app.version`
+  * `/config/product-service/server.port`
 
+
+* Refresh context
+
+```bash
+> curl -X POST http://127.0.0.1:9999/actuator/refresh
+["app.version", "server.port"]
+```
+
+* Now you should see that up version is updated and server port is still the same.
 
 ## Automate node configuration
 
 TBD
-
-
 
 ### Create AMI
 TBD
