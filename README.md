@@ -10,6 +10,8 @@ Try to go throw steps.
 Solution described in directory `./hints`, but generally you shouldn't use
 it until stuck.
 
+Use [Work-notes](Work-notes.md) file to store parameters that you should keep in mind.
+
 ## Legend
 
 You have application that implemented as monolith that contains front and backend.
@@ -29,7 +31,7 @@ Your task is
 
 Here described steps to pass workshop:
 
-### Step 1 - Run application locally
+### Step 1 - Run application locally [hints](hints/step-1.md)
 
 Goal is understood how application works.  
 
@@ -44,7 +46,7 @@ Goal is understood how application works.
 1. Prepare executable jar file
 1. Verify that jar is executable
 
-### Step 2 - Deploy application 
+### Step 2 - Deploy application [hints](hints/step-2.md)
 
 Goal is to deploy application as it is.
 
@@ -83,6 +85,7 @@ Goal is to deploy application as it is.
    1. https://stackoverflow.com/questions/62832339/systemd-service-wont-start-after-reboot
    1. Make ip static using elastic IP 
    
+
 Control Questions:
 1. Describe configuration properties that will be different on production and why?
 1. What could be a problem for that installation? 
@@ -95,7 +98,7 @@ Achievements:
 1. Application deployed on cloud.
 1. We have basic failover for cases when application failures or server could be restarted.
 
-### Step 3 - Use multiple instance
+### Step 3 - Use multiple instance [hints](hints/step-3.md)
 
 1. Create load balancer
 2. Store artifacts in S3
