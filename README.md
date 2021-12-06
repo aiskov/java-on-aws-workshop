@@ -82,8 +82,7 @@ Goal is to deploy application as it is.
    1. https://www.baeldung.com/linux/run-java-application-as-service
    1. https://stackoverflow.com/questions/62832339/systemd-service-wont-start-after-reboot
    1. Make ip static using elastic IP 
-
-
+   
 Control Questions:
 1. Describe configuration properties that will be different on production and why?
 1. What could be a problem for that installation? 

@@ -43,5 +43,10 @@ EBS:
     Location: # Example: /dev/xvdf
     Uuid: # Example: b89e8beb-e65b-48af-8a75-c1e9d789d801
 
+ELB: 
+	Host: # Example: http://workshop-lb-42913877.eu-west-1.elb.amazonaws.com/
+	Security Group:
+		Id: # Example: sg-1f0a255d
+		
 ```
 
