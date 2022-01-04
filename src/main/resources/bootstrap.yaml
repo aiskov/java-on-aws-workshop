@@ -1,6 +1,6 @@
 aws:
   paramstore:
-    enabled: true # Switch it to false if you want to work ofline
+    enabled: true # Switch it to false if you want to work offline
     name: product-service
     prefix: /config
     profileSeparator: _
