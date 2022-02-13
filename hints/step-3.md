@@ -611,13 +611,7 @@ aws s3 cp s3://<artifact-store-bucket>/products-1.jar /opt/product-service/
 systemctl restart app-product.service
 ```
 
-* Then make some small change in template in order to be sure that latest version is uploaded.
-  * As example change content of `title` tag in  `src/main/resources/templates/list.html` to have 
-
-```html
-<title>New Products</title>
-```
-
+* Then make change in `src/main/resources/application.yaml` to have `app.version` to `0.2`.
 * Build and upload new artifact version to the server.
 
 ```bash
