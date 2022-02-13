@@ -1,7 +1,33 @@
-[TOC]
+# Hints for step 2
+
+- [Hints for step 2](#hints-for-step-2)
+  - [Create load balancer](#create-load-balancer)
+    - [Security group for load balancer](#security-group-for-load-balancer)
+    - [Target for load balancer](#target-for-load-balancer)
+    - [Load balancer configuration](#load-balancer-configuration)
+    - [Allow connection only from load balancer](#allow-connection-only-from-load-balancer)
+  - [Store artifacts in S3](#store-artifacts-in-s3)
+    - [Save artifact in S3](#save-artifact-in-s3)
+      - [Upload using command line](#upload-using-command-line)
+    - [Download artifact from S3](#download-artifact-from-s3)
+      - [Install client](#install-client)
+      - [Configure Access](#configure-access)
+  - [Externalize application configuration](#externalize-application-configuration)
+    - [Create properties](#create-properties)
+    - [Adopt application to connect](#adopt-application-to-connect)
+    - [Verify that properties loaded from AWS](#verify-that-properties-loaded-from-aws)
+    - [Refresh properties without restart](#refresh-properties-without-restart)
+    - [Stop using app.properties on server](#stop-using-appproperties-on-server)
+  - [Automate node configuration](#automate-node-configuration)
+    - [Create AMI](#create-ami)
+    - [Add User Data](#add-user-data)
+  - [Store data in EFS](#store-data-in-efs)
+  - [Configure multiple instance](#configure-multiple-instance)
+  - [Configure auto scaling](#configure-auto-scaling)
 
 ## Create load balancer
 
+### Security group for load balancer
 * Go to `EC2/Network & Security/Security Groups`
 * Click `Create Security Group`
 
@@ -28,69 +54,97 @@ Tags:
   Role: Workshop
 ```
 
+### Target for load balancer
 * Go to `EC2/Load Balancing/Target Group`
 * Click `Create Target Group`
 
 ```yaml
 Basic configuration:
-	Choose a target type: Instances
-	Target group name: product-service-nodes
+    Choose a target type: Instances
+    Target group name: product-service-nodes
   Protocol: TCP
   Port: 8080
   VPC: <vpc-id>
   Protocol version: HTTP1
   
 Health checks:
-	Health check protocol: TCP
-	Health check path: /login
-	
-	Advanced health check settings:
-		Port: Traffic port
+    Health check protocol: TCP
+    Health check path: /login
+    
+    Advanced health check settings:
+        Port: Traffic port
     Healthy threshold: 3
     Unhealthy threshold: 3
     Timeout: 10 seconds
     Interval: 30 seconds
     Success codes: 200
-	
+    
 Tags: 
   Role: Workshop
   
 Available instances: 
-	Instance: <ec2-instance-id>
+    Instance: <ec2-instance-id>
 ```
 
+### Load balancer configuration
 * Go to `EC2/Load Balancing/Load Balancers`
 * Load balancer types - Application Load Balancer.
 
 ```yaml
-Load balancer name: workshop-lb
+Load balancer name: Workshop-LB
 Scheme: Internal
 IP address type: IPv4
 
 Network mapping:
-	VPC: <vpc-id>
+    VPC: <vpc-id>
 
-	Mappings:
-		eu-west-1a: <subnet-id-1>
-		eu-west-1b: <subnet-id-2>
-		
+    Mappings:
+        eu-west-1a: <subnet-id-1>
+        eu-west-1b: <subnet-id-2>
+        
 Security groups:
-	- <elb-security-group-id>
+    - <elb-security-group-id>
 
 Listeners and routing:
-	- Protocol: HTTP
-	  Port: 80
-	  Forward to: product-service-nodes
-	  
+    - Protocol: HTTP
+      Port: 80
+      Forward to: product-service-nodes
+      
 Add-on services:
-	AWS Global Accelerator: No
-	
+    AWS Global Accelerator: No
+    
 Tags:
   Role: Workshop
 ```
 
 * Wait until ELB `state` will be `Active`.
-* Now you can use ELB - host and port `80` to access to the your service. 
+* Now you can use ELB - host and port `80` to access to your service. 
+
+### Allow connection only from load balancer
+* Go to `EC2/Network & Security/Security Groups`
+* Choose group with name `Workshop-Product-App-SG`
+* Click `Actions` button and choose `Edit inbound rules`
+* Change rules to achieve:
+
+```yaml
+Inbound Rules:
+  -
+    Type: SSH
+    Protocol: TCP
+    Port Range: 22
+    Source: 0.0.0.0/0
+    Description: SSH port
+
+  -
+    Type: Custom TCP Rule
+    Protocol: TCP
+    Port Range: 8080
+    Source: <elb-security-group-id>
+    Description: Application port for ELB
+```
+
+* Try to load page using elastic IP address. It should fail with `ERR_CONNECTION_TIMED_OUT` in chrome.
+* Try to load page using ELB
 
 ## Store artifacts in S3
 ### Save artifact in S3
@@ -102,23 +156,23 @@ Upload manually
 
 ```yaml
 General configuration:
-	Bucket name: artifact-store-<some-unique-id>
-	AWS Region: eu-west-1
-	Copy settings from existing bucket: No
+    Bucket name: artifact-store-<some-unique-id>
+    AWS Region: eu-west-1
+    Copy settings from existing bucket: No
 
 Object Ownership: ACLs disabled (recommended)
 Block Public Access settings for this bucket: 
-	Block all public access: Yes
+    Block all public access: Yes
 
 Bucket Versioning: Enabled
 
 Tags:
-	Role: Workshop
-	
+    Role: Workshop
+    
 Default encryption: Disable
 
 Advanced settings:
-	Object Lock: Disable
+    Object Lock: Disable
 ```
 
 * Go to `S3/Bickets/<artifact-store-bucket>`
@@ -176,7 +230,7 @@ In additional we give full `GetObject*`  TODO: Clarify
 
 ```yaml
 Tags:
-	Role: Workshop
+    Role: Workshop
 
 Name: Product-Service-Artifact-Read
 Description: Access to artifact of product service that could be used to 
@@ -184,7 +238,6 @@ Description: Access to artifact of product service that could be used to
 ```
 
 * Go to `IAM/Access Management/Roles`.
-
 * Click `Create Role`
 
 ```yaml
@@ -225,83 +278,83 @@ Role description: Dedicated role for Product Service instances
 
 * Go to `Systems Manager/Application Management/Parameter Store`
 * Click `Create parameter`
-* Transfer properties from the propertiws file to the 
+* Transfer properties from the properties file to the AWS Param Store
 
 ```yaml
 - Name: /config/product-service_prod/spring.datasource.url
-	Tier: Standard
-	Type: String
+    Tier: Standard
+    Type: String
   Data Type: text
-	Value: jdbc:mysql://<rds-endpoint>:3306/service_db
+    Value: jdbc:mysql://<rds-endpoint>:3306/service_db
 
 - Name: /config/product-service_prod/spring.datasource.username
-	Tier: Standard
-	Type: String
+    Tier: Standard
+    Type: String
   Data Type: text
-	Value: <rds-app-user>
+    Value: <rds-app-user>
 
 - Name: /config/product-service_prod/spring.datasource.password
-	Tier: Standard
-	Type: SecureString
+    Tier: Standard
+    Type: SecureString
   KMS key source: My current account
   KMS key ID: alias/aws/ssm
-	Value: <rds-app-password>
+    Value: <rds-app-password>
 
 - Name: /config/product-service_prod/app.files.location
-	Tier: Standard
-	Type: String
+    Tier: Standard
+    Type: String
   Data Type: text
-	Value: /var/product-files/
+    Value: /var/product-files/
 
 - Name: /config/product-service_prod/logging.file.name
-	Tier: Standard
-	Type: String
+    Tier: Standard
+    Type: String
   Data Type: text
-	Value: /var/log/product-service.log
+    Value: /var/log/product-service.log
 ```
 
 ### Adopt application to connect
 
-Modify  `pom.xml`
+Modify `pom.xml`
 
 ```xml
-	<properties>
-    ...
-		<spring-cloud.version>2020.0.4</spring-cloud.version>
-	</properties>
+    <properties>
+...
+        <spring-cloud.version>2020.0.4</spring-cloud.version>
+    </properties>
 
 ...
  
-	<dependencyManagement>
-		<dependencies>
-			<dependency>
-				<groupId>org.springframework.cloud</groupId>
-				<artifactId>spring-cloud-dependencies</artifactId>
-				<version>${spring-cloud.version}</version>
-				<type>pom</type>
-				<scope>import</scope>
-			</dependency>
-		</dependencies>
-	</dependencyManagement>
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.springframework.cloud</groupId>
+                <artifactId>spring-cloud-dependencies</artifactId>
+                <version>${spring-cloud.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 
 ...
   <dependencies>
     ...
     <dependency>
-			<groupId>org.springframework.cloud</groupId>
-			<artifactId>spring-cloud-starter</artifactId>
-		</dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter</artifactId>
+        </dependency>
 
-		<dependency>
-			<groupId>org.springframework.cloud</groupId>
-			<artifactId>spring-cloud-starter-bootstrap</artifactId>
-		</dependency>
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-bootstrap</artifactId>
+        </dependency>
 
-		<dependency>
-			<groupId>org.springframework.cloud</groupId>
-			<artifactId>spring-cloud-starter-aws-parameter-store-config</artifactId>
-			<version>2.2.6.RELEASE</version>
-		</dependency>
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-aws-parameter-store-config</artifactId>
+            <version>2.2.6.RELEASE</version>
+        </dependency>
     ...
   </dependencies>
 ...
@@ -312,7 +365,7 @@ Add `src/main/resources/bootstrap.yaml`
 ```yaml
 aws:
   paramstore:
-    enabled: true # Switch it to false if you want to work ofline
+    enabled: true # Switch it to false if you want to work offline
     name: product-service
     prefix: /config
     profileSeparator: _
@@ -324,15 +377,15 @@ aws:
 
 ```yaml
 - Name: /config/product-service/server.port
-	Tier: Standard
-	Type: String
+    Tier: Standard
+    Type: String
   Data Type: text
-	Value: 8888
+    Value: 8888
 ```
 
 * Start application locally, it should start to use 8888 port.
 
-### Refresh propeties without restart
+### Refresh properties without restart
 
 * Modify `application.yaml` to expose `refresh` endpoint. 
 
@@ -349,20 +402,20 @@ management:
 
 ```yaml
 - Name: /config/product-service/server.port
-	Tier: Standard
-	Type: String
+    Tier: Standard
+    Type: String
   Data Type: text
-	Value: 9999
+    Value: 9999
 ```
 
 * Add new property
 
 ```yaml
 - Name: /config/product-service/app.version
-	Tier: Standard
-	Type: String
+    Tier: Standard
+    Type: String
   Data Type: text
-	Value: TEST
+    Value: TEST
 ```
 
 * Refresh context
@@ -383,8 +436,8 @@ Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
 <+>UTF-8
 ===================================================================
 diff --git a/src/main/java/com/aiskov/aws/products/domain/ProductController.java b/src/main/java/com/aiskov/aws/products/domain/ProductController.java
---- a/src/main/java/com/aiskov/aws/products/domain/ProductController.java	(revision 0665a55e95fcff0326a419dfe26ea5f995e54dee)
-+++ b/src/main/java/com/aiskov/aws/products/domain/ProductController.java	(date 1638826059656)
+--- a/src/main/java/com/aiskov/aws/products/domain/ProductController.java    (revision 0665a55e95fcff0326a419dfe26ea5f995e54dee)
++++ b/src/main/java/com/aiskov/aws/products/domain/ProductController.java    (date 1638826059656)
 @@ -2,6 +2,7 @@
  
  import lombok.RequiredArgsConstructor;
@@ -419,8 +472,7 @@ diff --git a/src/main/java/com/aiskov/aws/products/domain/ProductController.java
 * Remove properties:
   * `/config/product-service/app.version`
   * `/config/product-service/server.port`
-
-
+  
 * Refresh context
 
 ```bash
@@ -429,6 +481,89 @@ diff --git a/src/main/java/com/aiskov/aws/products/domain/ProductController.java
 ```
 
 * Now you should see that up version is updated and server port is still the same.
+
+### Stop using app.properties on server
+
+On EC2 instance modify file `/etc/systemd/system/app-product.service` to replace 
+`--spring.config.import=app.properties` with `--spring.profiles.active=prod`
+
+**NB:** *You need to add `--add-opens java.base/java.lang=ALL-UNNAMED` to the 
+java parameters because of bug in the AWS library, otherwise you could get 
+`InaccessibleObjectException`*
+
+```properties
+[Unit]
+Description=Product service application
+After=syslog.target network.target
+
+[Service]
+SuccessExitStatus=143
+
+User=root
+Group=ubuntu
+
+Type=simple
+
+WorkingDirectory=/opt/product-service
+ExecStart=java -jar --add-opens java.base/java.lang=ALL-UNNAMED products-1.jar --spring.profiles.active=prod
+ExecStop=/bin/kill -15 $MAINPID
+
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
+```
+
+* Go to `IAM/Access Management/Policies`.
+* Click `Create Policy`
+
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "Rule0",
+      "Effect": "Allow",
+      "Action": "ssm:GetParametersByPath",
+      "Resource": [
+        "arn:aws:ssm:eu-west-1:669171167111:parameter/config/product-service*",
+        "arn:aws:ssm:eu-west-1:669171167111:parameter/config/application*"
+      ]
+    }
+  ]
+}
+```
+
+* Then continue configuration
+
+```yaml
+Tags:
+    Role: Workshop
+
+Name: Product-Service-Params-Load
+Description: Access to parameters of product service.
+```
+
+* Go to `IAM/Access Management/Roles`.
+* Find `Product-Service-Instance`, and click on it.
+* Click `Attach policies`.
+* Find `Product-Service-Params-Load` and select it.
+* Click `Attach policy` at the bottom of the screen.
+
+On your instance execute
+
+```bash
+> aws --region eu-west-1 ssm get-parameters-by-path --path /config/product-service_prod
+> aws --region eu-west-1 ssm get-parameters-by-path --path /config/product-service
+```
+
+Now you see that properties could be loaded from the node. 
+
+```bash
+> sudo systemctl daemon-reload # Reload needed to refresh configuration
+> sudo systemctl restart app-product.service # Restart service
+```
 
 ## Automate node configuration
 

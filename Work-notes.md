@@ -19,8 +19,8 @@ VPC:
       Availablity Zone:
 
 RDS: 
-	Endpoint: # Example: workshop.cdbp96gigslf.eu-west-1.rds.amazonaws.com
-	
+    Endpoint: # Example: workshop.cdbp96gigslf.eu-west-1.rds.amazonaws.com
+
   Admin User:
     User: # Example: admin
     Password: # Example akyBULhfbzQpqUw-wuvwDL7D2MsCMi3e
@@ -29,25 +29,29 @@ RDS:
     Password: # Example: 4yRuVLm7UPvbbNu----CPBX36RXCXHsUNnY3
 
 EC2:
-  Security Group: # Example sg-0571ab8cd4eaed1d9
-  
+  Security Group: 
+    Id: # Example sg-0571ab8cd4eaed1d9
+    Name: # Example Workshop-Product-App-SG
+    
   - Id: # Example: i-0b86ff997a0f08909
     Public IP: # Example: 34.244.26.32
     Availability Zone: # Example: eu-west-1a
 
 ElasticIp:
-	- # Example: 18.202.142.131
-   
+    - # Example: 18.202.142.131
+
 EBS:
   - Id: # Example: vol-0252afdc6e6876b01
     Location: # Example: /dev/xvdf
     Uuid: # Example: b89e8beb-e65b-48af-8a75-c1e9d789d801
 
 ELB: 
-	Host: # Example: http://workshop-lb-42913877.eu-west-1.elb.amazonaws.com/
-	Security Group:
-		Id: # Example: sg-1f0a255d
-		
+    Host: # Example: http://workshop-lb-42913877.eu-west-1.elb.amazonaws.com/
+    Name: # Example Workshop-LB
+    Security Group:
+        Id: # Example: sg-1f0a255d
+        Name: # Workshop-LB-SG
+
 S3:
   - Name: # Example artifact-store-c1e9d789d801
     ARN: # arn:aws:s3:::artifact-store-c1e9d789d801
