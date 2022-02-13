@@ -14,7 +14,7 @@
       - [Configure Access](#configure-access)
   - [Externalize application configuration](#externalize-application-configuration)
     - [Create properties](#create-properties)
-    - [Adopt application to connect](#adopt-application-to-connect)
+    - [Modify application to connect](#modify-application-to-connect)
     - [Verify that properties loaded from AWS](#verify-that-properties-loaded-from-aws)
     - [Refresh properties without restart](#refresh-properties-without-restart)
     - [Stop using app.properties on server](#stop-using-appproperties-on-server)
@@ -123,7 +123,7 @@ Tags:
 ### Allow connection only from load balancer
 * Go to `EC2/Network & Security/Security Groups`
 * Choose group with name `Workshop-Product-App-SG`
-* Click `Actions` button and choose `Edit inbound rules`
+* Click `Actions/Edit inbound rules`
 * Change rules to achieve:
 
 ```yaml
@@ -147,10 +147,8 @@ Inbound Rules:
 * Try to load page using ELB
 
 ## Store artifacts in S3
-### Save artifact in S3
 
-Upload manually
-
+### Create bucket
 * Go to `S3/Buckets`
 * Click  `Create bucket`
 
@@ -175,34 +173,34 @@ Advanced settings:
     Object Lock: Disable
 ```
 
+### Upload artifact manually
+Upload manually
+
 * Go to `S3/Bickets/<artifact-store-bucket>`
 * Upload your artifact from project `target/products-1.jar` to root of the bucket.
 * Wait until upload process finished.
 
-#### Upload using command line
-
+### Upload artifact using command line
 *Requires to have configured local client.*
 
 ```bash
-aws s3 cp ./target/products-1.jar s3://artifact-store-c1e9d789d801/
+aws s3 cp ./target/products-1.jar s3://<artifact-store-bucket>/
 ```
 
 ### Download artifact from S3
 
 #### Install client
-
 * On your instance try to execute:
 
 ```bash
 > sudo apt install -y awscli # install AWS command line client
 > cd /opt/product-service/
 # Try to download from S3
-> aws s3 cp s3://artifact-store-c1e9d789d801/products-1.jar . 
+> aws s3 cp s3://<artifact-store-bucket>/products-1.jar . 
 fatal error: Unable to locate credentials
 ```
 
 #### Configure Access
-
 * Go to `IAM/Access Management/Policies`.
 * Click `Create Policy`
 
@@ -216,15 +214,11 @@ fatal error: Unable to locate credentials
             "Action": [
                 "s3:GetObject"
             ],
-            "Resource": "arn:aws:s3:::artifact-store-c1e9d789d801/products-1.jar"
+            "Resource": "arn:aws:s3:::<artifact-store-bucket>/products-1.jar"
         }
     ]
 }
 ```
-
-List is needed only to allow head operation, but because it role on bucket layer we should specify as resource whole bucket. TODO: Clarify
-
-In additional we give full `GetObject*`  TODO: Clarify
 
 * Then continue configuration
 
@@ -275,7 +269,6 @@ Role description: Dedicated role for Product Service instances
 ## Externalize application configuration
 
 ### Create properties
-
 * Go to `Systems Manager/Application Management/Parameter Store`
 * Click `Create parameter`
 * Transfer properties from the properties file to the AWS Param Store
@@ -313,8 +306,7 @@ Role description: Dedicated role for Product Service instances
     Value: /var/log/product-service.log
 ```
 
-### Adopt application to connect
-
+### Modify application to connect
 Modify `pom.xml`
 
 ```xml
@@ -372,7 +364,6 @@ aws:
 ```
 
 ### Verify that properties loaded from AWS
-
 * Add new property
 
 ```yaml
@@ -386,7 +377,6 @@ aws:
 * Start application locally, it should start to use 8888 port.
 
 ### Refresh properties without restart
-
 * Modify `application.yaml` to expose `refresh` endpoint. 
 
 ```yaml
@@ -398,7 +388,7 @@ management:
 ```
 
 * Start application locally.
-* Change server.port to `9999`
+* Change `server.port` to `9999`
 
 ```yaml
 - Name: /config/product-service/server.port
@@ -426,7 +416,6 @@ management:
 ```
 
 * Now you could check that port and version shown after login is still the same.
-
 * Update java code to resolve properties dynamically 
 
 ```java
@@ -483,7 +472,6 @@ diff --git a/src/main/java/com/aiskov/aws/products/domain/ProductController.java
 * Now you should see that up version is updated and server port is still the same.
 
 ### Stop using app.properties on server
-
 On EC2 instance modify file `/etc/systemd/system/app-product.service` to replace 
 `--spring.config.import=app.properties` with `--spring.profiles.active=prod`
 
@@ -567,10 +555,51 @@ Now you see that properties could be loaded from the node.
 
 ## Automate node configuration
 
-TBD
-
 ### Create AMI
-TBD
+
+#### Cleanup server
+* Go to `EC2/Instances`
+* Select your instance `<ec2-instance-id>`
+* Open storage tab
+* Choose root device (it should have device name `/dev/sda1` and size 8 Gib) and click on volume id.
+* One volumes list mark it as selected
+* Click on `Actions/Create snapshot`
+
+```yaml
+Description: Snapshot for AMI
+
+Tags:
+  Role: Workshop
+```
+
+* Go to `EC2/Elastic Block Storage/Snapshots`
+* Wait until snapshot status will be `Completed` (Generally it takes some time).
+* Select snapshot
+* Click on `Actions/Create image from snapshot`
+
+```yaml
+Image name: Workshop-Product-App-AMI-v01
+Description: Image for product app
+Architecture: x86_64
+Root device name: /dev/sda1
+Virtualization type: hardware-assist technology
+Boot mode: Use default
+
+Block device mappings:
+  - 
+    Name: Volume 1
+    Device type: Root
+    Device name: /dev/sda1
+    Size (GiB): 8
+    Volume type: General Purpose SSD (gp2)
+    Termination behavior: Delete on termination
+````
+
+* *Optional:* Try to run new instance from AMI.
+  * On screen `Choose AMI` in process of creation of new instance you should choose `My AMIs` on left menu.
+  * Then process will be the same as before. 
+  * You should be able to connect to the server using ssh and check that all required files on the place, but service 
+    shouldn't be started because of lack of role. 
 
 ### Add User Data
 TBD

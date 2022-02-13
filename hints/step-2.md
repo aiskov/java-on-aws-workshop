@@ -335,13 +335,10 @@ Encryption:
 After creation toy should wait some time until `Volume state` will be `Available`.
 
 ### Attach volume to the instance
-Go to `EC2/Instances` and open details of your workshop instance.
-
-Click on `Instance state` and choose `Stop instance` it could take several minutes.
-
-Go back to `EC2/Elastic Block Storage/Volumes` and select your new volume.
-
-Click `Actions` button and select `Attach volume` 
+* Go to `EC2/Instances` and open details of your workshop instance.
+* Click on `Instance state` and choose `Stop instance` it could take several minutes.
+* Go back to `EC2/Elastic Block Storage/Volumes` and select your new volume.
+* Click `Actions/Attach volume` 
 
 ```yaml
 Instance: <ec2-instance-id>
