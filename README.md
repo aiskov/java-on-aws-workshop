@@ -27,7 +27,8 @@ Try to go throw steps.
 Solution described in directory `./hints`, but generally you shouldn't use
 it until stuck.
 
-Use [Work-notes](Work-notes.md) file to store parameters that you should keep in mind.
+Use [Work-notes](Work-notes.md) file to store parameters that you should keep in mind. When you use hints in some
+places you will see placeholders `<...>` what generally mean that you should use some value saved in the Work Notes.
 
 ## Legend
 You have application that implemented as monolith that contains front and backend.
