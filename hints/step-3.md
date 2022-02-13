@@ -7,8 +7,9 @@
     - [Load balancer configuration](#load-balancer-configuration)
     - [Allow connection only from load balancer](#allow-connection-only-from-load-balancer)
   - [Store artifacts in S3](#store-artifacts-in-s3)
-    - [Save artifact in S3](#save-artifact-in-s3)
-      - [Upload using command line](#upload-using-command-line)
+    - [Create bucket](#create-bucket)
+    - [Upload artifact manually](#upload-artifact-manually)
+    - [Upload artifact using command line](#upload-artifact-using-command-line)
     - [Download artifact from S3](#download-artifact-from-s3)
       - [Install client](#install-client)
       - [Configure Access](#configure-access)
@@ -20,10 +21,10 @@
     - [Stop using app.properties on server](#stop-using-appproperties-on-server)
   - [Automate node configuration](#automate-node-configuration)
     - [Create AMI](#create-ami)
-    - [Add User Data](#add-user-data)
+      - [Cleanup server](#cleanup-server)
+      - [Create instance with user data](#create-instance-with-user-data)
+  - [Configure multiple instance and auto scaling](#configure-multiple-instance-and-auto-scaling)
   - [Store data in EFS](#store-data-in-efs)
-  - [Configure multiple instance](#configure-multiple-instance)
-  - [Configure auto scaling](#configure-auto-scaling)
 
 ## Create load balancer
 
@@ -605,8 +606,8 @@ Block device mappings:
 
 #### Prepare user data
 ```bash
-cd /opt/product-service/
-aws s3 cp s3://<artifact-store-bucket>/products-1.jar .
+#!/bin/bash
+aws s3 cp s3://<artifact-store-bucket>/products-1.jar /opt/product-service/
 systemctl restart app-product.service
 ```
 
@@ -622,7 +623,7 @@ systemctl restart app-product.service
 ```bash
 > mvn clean package
 ...
-> aws s3 cp ./target/products-1.jar s3://artifact-store-c1e9d789d801/
+> aws s3 cp ./target/products-1.jar s3://<artifact-store-bucket>/
 ```
 
 #### Create instance with user data
@@ -648,6 +649,7 @@ Placement group:
 Capacity Reservation: Open # We have no reservation
 
 Domain join directory: No directory # We have no configuration
+IAM role: Product-Service-Instance 
 ```
 
 * Click `Next: Add Storage`
@@ -663,11 +665,8 @@ Role: Workshop
 * Select `<ec2-security-group-id>`
 * Click `Review and Launch`
 
-## Store data in EFS
+## Configure multiple instance and auto scaling
 TBD
 
-## Configure multiple instance
-TBD 
-
-## Configure auto scaling
+## Store data in EFS
 TBD

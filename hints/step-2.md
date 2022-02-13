@@ -4,6 +4,7 @@
   - [Create RDS database - MySQL](#create-rds-database---mysql)
     - [Add tags](#add-tags)
   - [Create EC2 instance, install java.](#create-ec2-instance-install-java)
+    - [Create security group](#create-security-group)
     - [Configure Instance details](#configure-instance-details)
     - [Add Storage](#add-storage)
     - [Add Tags](#add-tags-1)

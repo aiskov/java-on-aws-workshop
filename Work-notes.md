@@ -19,7 +19,7 @@ VPC:
       Availablity Zone:
 
 RDS: 
-    Endpoint: # Example: workshop.cdbp96gigslf.eu-west-1.rds.amazonaws.com
+  Endpoint: # Example: workshop.cdbp96gigslf.eu-west-1.rds.amazonaws.com
 
   Admin User:
     User: # Example: admin
@@ -33,9 +33,10 @@ EC2:
     Id: # Example sg-0571ab8cd4eaed1d9
     Name: # Example Workshop-Product-App-SG
     
-  - Id: # Example: i-0b86ff997a0f08909
-    Public IP: # Example: 34.244.26.32
-    Availability Zone: # Example: eu-west-1a
+  Instances:
+    - Id: # Example: i-0b86ff997a0f08909
+      Public IP: # Example: 34.244.26.32
+      Availability Zone: # Example: eu-west-1a
 
 ElasticIp:
     - # Example: 18.202.142.131
@@ -60,7 +61,7 @@ S3:
 
 ## User data draft
 ```bash
-cd /opt/product-service/
-aws s3 cp s3://artifact-store-c1e9d789d801/products-1.jar .
+#!/bin/bash
+aws s3 cp s3://artifact-store-c1e9d789d801/products-1.jar /opt/product-service/
 systemctl restart app-product.service
 ```

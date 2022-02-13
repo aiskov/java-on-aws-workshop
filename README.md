@@ -128,11 +128,10 @@ Data will be shared using network file system - EFS.
    1. Create AMI
    2. Add User Data
    3. Get jar from S3
-5. Store data in EFS
-6. Configure multiple instance
+5. Configure multiple instance and auto scaling
    1. One on demand instance
    2. +2 spot instances
-7. Configure auto scaling
+6. Store data in EFS
 
 ### Step 4 - Introduce CI/CD 
 
