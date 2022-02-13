@@ -161,13 +161,13 @@ Tags:
 
   
 ### Configure Instance details
-1. Go to AWS Console/Services/EC2
-2. Left side panel Instances
-3. Button: Launch instances
-4. Search: Ubuntu Server 20.04
-5. Choose option 64-bit (x86) under Select Button
-6. Click Select Button
-7. Choose t2.micro
+* Go to AWS Console/Services/EC2
+* Left side panel Instances
+* Button: Launch instances
+* Search: Ubuntu Server 20.04
+* Choose option 64-bit (x86) under Select Button
+* Click Select Button
+* Choose t2.micro
 
 ```yaml
 Number of instances: 1

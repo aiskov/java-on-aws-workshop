@@ -184,7 +184,7 @@ Upload manually
 *Requires to have configured local client.*
 
 ```bash
-aws s3 cp ./target/products-1.jar s3://<artifact-store-bucket>/
+> aws s3 cp ./target/products-1.jar s3://<artifact-store-bucket>/
 ```
 
 ### Download artifact from S3
@@ -262,7 +262,7 @@ Role description: Dedicated role for Product Service instances
 
 ```yaml
 > cd /opt/product-service/
-> aws s3 cp s3://artifact-store-c1e9d789d801/products-1.jar .
+> aws s3 cp s3://<artifact-store-bucket>/products-1.jar .
 > sudo systemctl restart app-product.service
 ```
 
@@ -595,14 +595,73 @@ Block device mappings:
     Termination behavior: Delete on termination
 ````
 
-* *Optional:* Try to run new instance from AMI.
+* *Optional:* Try to run new instance from AMI without instance data.
   * On screen `Choose AMI` in process of creation of new instance you should choose `My AMIs` on left menu.
   * Then process will be the same as before. 
   * You should be able to connect to the server using ssh and check that all required files on the place, but service 
     shouldn't be started because of lack of role. 
 
 ### Add User Data
-TBD
+
+#### Prepare user data
+```bash
+cd /opt/product-service/
+aws s3 cp s3://<artifact-store-bucket>/products-1.jar .
+systemctl restart app-product.service
+```
+
+* Then make some small change in template in order to be sure that latest version is uploaded.
+  * As example change content of `title` tag in  `src/main/resources/templates/list.html` to have 
+
+```html
+<title>New Products</title>
+```
+
+* Build and upload new artifact version to the server.
+
+```bash
+> mvn clean package
+...
+> aws s3 cp ./target/products-1.jar s3://artifact-store-c1e9d789d801/
+```
+
+#### Create instance with user data
+
+* Go to `EC2/Instances` & click `Launch instances`
+* Left panel: `Ny AMis`
+* Click `Select` button on `Workshop-Product-App-AMI-v01`
+* Choose `t2.micro` type and click 'Next: Configure Instance Details'
+
+```yaml
+Number of instances: 1
+
+Purchasing option: 
+  Request Spot instances: No
+
+Network: vpc-xxxxx | default (default)
+Subnet: No preferences # For now, it doesn't matter
+Auto-assign Public IP: Use subnet networks
+
+Placement group:
+  Add instance to placement group: No
+
+Capacity Reservation: Open # We have no reservation
+
+Domain join directory: No directory # We have no configuration
+```
+
+* Click `Next: Add Storage`
+* Keep as it is with 8 GiB disk.
+* Click `Next: Add tag` and add
+
+```yaml
+Role: Workshop
+```
+
+* Click `Next: Configure Security Group`
+* Choose `Assign a security group: Select an existing security group`
+* Select `<ec2-security-group-id>`
+* Click `Review and Launch`
 
 ## Store data in EFS
 TBD

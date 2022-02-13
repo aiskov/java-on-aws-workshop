@@ -58,3 +58,9 @@ S3:
     URI: # Example s3://artifact-store-c1e9d789d801
 ```
 
+## User data draft
+```bash
+cd /opt/product-service/
+aws s3 cp s3://artifact-store-c1e9d789d801/products-1.jar .
+systemctl restart app-product.service
+```

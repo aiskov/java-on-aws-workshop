@@ -127,6 +127,7 @@ Data will be shared using network file system - EFS.
 4. Automate node configuration
    1. Create AMI
    2. Add User Data
+   3. Get jar from S3
 5. Store data in EFS
 6. Configure multiple instance
    1. One on demand instance
