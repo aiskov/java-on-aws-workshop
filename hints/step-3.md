@@ -1,6 +1,4 @@
-# Hints for step 2
-
-- [Hints for step 2](#hints-for-step-2)
+- [Hints for step 3](#hints-for-step-3)
   - [Create load balancer](#create-load-balancer)
     - [Security group for load balancer](#security-group-for-load-balancer)
     - [Target for load balancer](#target-for-load-balancer)
@@ -24,7 +22,17 @@
       - [Cleanup server](#cleanup-server)
       - [Create instance with user data](#create-instance-with-user-data)
   - [Configure multiple instance and auto scaling](#configure-multiple-instance-and-auto-scaling)
+    - [Clean up](#clean-up)
+    - [Create autoscaling group](#create-autoscaling-group)
+    - [Apply rolling update by changing instance type](#apply-rolling-update-by-changing-instance-type)
+    - [Set up usage of spot instances](#set-up-usage-of-spot-instances)
+    - [Set up scaling based rule](#set-up-scaling-based-rule)
+      - [Verify scaling](#verify-scaling)
+      - [Enable stickiness](#enable-stickiness)
   - [Store data in EFS](#store-data-in-efs)
+    - [Mount to instances](#mount-to-instances)
+
+# Hints for step 3
 
 ## Create load balancer
 
@@ -658,9 +666,358 @@ Role: Workshop
 * Choose `Assign a security group: Select an existing security group`
 * Select `<ec2-security-group-id>`
 * Click `Review and Launch`
+* Click `Launch` and acknowledge access to SSH keys.
+* Go to `EC2/Instances` and wait until your instances will be accessible.
+* Go to `EC2/Load Balancing/Target Groups`
+* Select `product-service-nodes` and open `Targets` tab
+* Remove current instance from target by clicking deregister with selected instance.
+* Click `Register targets`
+* And add new target created from AMI.
 
 ## Configure multiple instance and auto scaling
-TBD
+
+### Clean up
+
+* Go to `EC2/Instances`
+* Select all instances created for workshop.
+* Click `Instance State/Terminate Instance`
+
+### Create autoscaling group
+
+* Go to `EC2/Launch Templates`
+* Click `Create launch template` and fill form
+
+```yaml
+Launch template name: Workshop-Product-Template
+Template version description: Init
+Auto Scaling guidance: Yes
+
+Template tags:
+  Role: Workshop
+
+Source template: No
+
+Launch template contents:
+  Application and OS Images: 
+    My AMIs:
+      Amazon Machine Image (AMI): Workshop-Product-App-AMI-v01
+
+Instance type Info:
+  Instance type: t2.micro
+
+Key pair (login):
+  Key pair name: <Your key>
+
+Network settings:
+  Subnet: Don't include in launch template # We will specify it in SG
+  
+  Firewall (security groups):
+    Select existing security group:
+      Common security groups: Workshop-LB-SG
+      
+  Advanced network configuration: No
+
+Configure storage:
+  - Size: 8 GiB
+    Type: gp2
+
+Resource tags:
+  Name: Product-Service # Resource types: Instances
+  Role: Workshop # Resource types: Instances, Volumes
+
+Advanced Details:
+  Purchasing option Info:
+    Request Spot Instances: No
+  
+  IAM instance profile: Product-Service-Instance
+  Hostname type: Don't include in launch template
+  
+  DNS Hostname: Skip
+  Termination protection Info: Don't include in launch template
+  Detailed CloudWatch monitoring Info: Don't include in launch template
+  Elastic GPU Info: Don't include in launch template
+  
+  Elastic inference: 
+    Add Elastic Inference accelerators: No
+    
+  Credit specification Info: Don't include in launch template
+  Placement group name Info: Don't include in launch template
+
+  Create new placement group: Don't include in launch template
+  EBS-optimized instance Info: Don't include in launch template
+  Capacity reservation Info: Don't include in launch template
+  Tenancy Info: Don't include in launch template
+  RAM disk ID Info: Don't include in launch template
+  Kernel ID Info: Don't include in launch template
+  License configurations Info: Don't include in launch template
+
+  Metadata accessible Info: Don't include in launch template
+  Metadata version Info: Don't include in launch template
+  Metadata response hop limit Info: Don't include in launch template
+  Allow tags in metadata Info: Don't include in launch template
+
+  Don't include in launch template: Don't include in launch template
+  
+  User data: <user-data>
+```
+
+* Go to `EC2/Auto Scaling/Auto Scaling Groups`
+* Click `Create an Auto Scaling group`
+
+```yaml
+Auto Scaling group name: Workshop-Product-SG
+Launch template:
+  Launch template: Workshop-Product-Template
+  Version: Default (1)
+
+Network:
+  VPC: <vpc-id>
+  Availability Zones and subnets: <select all public subnets>
+
+Instance type requirements: Do not override specification of template
+
+Load balancing:
+  Attach to an existing load balancer: Yes
+  Choose from your load balancer target groups: Yes
+  Existing load balancer target groups: product-service-nodes
+
+Health checks:
+  ELB: Yes
+  Health check grace period: 300
+
+Group size:
+  Desired capacity: 1
+  Minimum capacity: 1
+  Maximum capacity: 2
+
+Scaling policies:
+  Target tracking scaling policy: No
+
+Add notifications: Skip
+
+Tags:
+  Role: Workshop
+```
+
+* Click workshop name in order to open details.
+* Click `Activity` tab and wait until the status becomes `Successful`.
+* Click `Instance management` tab and see list of instances.
+
+### Apply rolling update by changing instance type
+
+* Go to `EC2/Launch Templates`.
+* Select template with name `Launch template name`.
+* Click `Actions/Modify template (Create new version)`.
+* Change `Instance type` to `t2.nano`.
+* Click `Create template version`.
+* Click `View launch templates`.
+* Click `Actions/Set default version`.
+* Set `Template version` to the latest one and click `Set as default version`.
+
+**NB: If you skip set default version, next versions will be created from the default.**
+
+* Go to `EC2/Auto Scaling/Auto Scaling Group`.
+* Select `Workshop-Product-SG` and click `Edit`.
+* Scroll to `Launch template` and change version to latest.
+* Click update.
+* Click to `Workshop-Product-SG` in order to show details.
+* Open `Instance refresh`.
+* Click `Start instance refresh`.
+
+```yaml
+Refresh settings:
+  Minimum healthy percentage: 100%
+  Instance warmup: 300 seconds
+
+  Checkpoints:
+    Enable checkpoints: No
+
+  Skip matching:
+    Enable skip matching: Yes
+
+  Desired configuration: Skip
+```
+
+* Click `Start instance refresh`.
+* Stay un `Instance refresh` tab and wait until the refresh activity status becomes `Successful`.
+
+### Set up usage of spot instances
+
+* Go to `EC2/Auto Scaling/Auto Scaling groups`.
+* Click on name `Workshop-Product-SG` in order to open details.
+* Click `Override launch template` in `Instance type requirements`.
+
+```yaml
+Instance type requirements:
+  Manually add instance types: Yes
+  Types: t2.micro, t3.micro
+  
+Instance purchase options:
+  On-demand: 0%
+  Spot: 100%
+
+  Include On-Demand base capacity: Yes
+  On-Demand Instances: 1
+
+Allocation strategies:
+  Spot allocation strategy: Capacity optimized
+  Prioritize instance types: No
+  Capacity rebalance: Yes
+```
+
+### Set up scaling based rule 
+
+* Go to `CloudWatch/Alarms`.
+* Click `Create alarm`.
+* Click `Select metric`, select `EC2/By Auto Scaling Group/CPUUtilization`.
+
+```yaml
+Metric:
+  Metric name: CPUUtilization
+  Auto Scaling Group Name: Workshop-Product-SG
+  Statistic: Average
+  Period: 5 minutes
+
+Conditions:
+  Threshold type: Static
+  Whenever CPUUtilization is...: Greater
+  than...: 80
+```
+
+* Click `Remove` on `Notification`.
+* Click `Next`.
+
+```yaml
+Name and description:
+  Alarm name: Workshop-CPU-Usage-Too-Big
+  Alarm description: 
+```
+
+* Click `Create alarm`.
+* Click `Select metric`, select `EC2/By Auto Scaling Group/CPUUtilization`.
+
+```yaml
+Metric:
+  Metric name: CPUUtilization
+  Auto Scaling Group Name: Workshop-Product-SG
+  Statistic: Average
+  Period: 5 minutes
+
+Conditions:
+  Threshold type: Static
+  Whenever CPUUtilization is...: Less
+  than...: 30
+```
+
+* Click `Remove` on `Notification`.
+* Click `Next`.
+
+```yaml
+Name and description:
+  Alarm name: Workshop-CPU-Usage-Too-Small
+  Alarm description: 
+```
+
+* Go to `EC2/Auto Scaling/Auto Scaling Group`.
+* Open `Automatic scaling` tab.
+* Click `Create dynamic scaling policy`
+
+```yaml
+Policy type: Simple scaling
+Scaling policy name: Usage-too-big
+CloudWatch alarm: Workshop-CPU-Usage-Too-Big
+Take the action: Add 1 capacity units
+And then wait: 300 seconds
+```
+
+* Click `Create dynamic scaling policy`
+
+```yaml
+Policy type: Simple scaling
+Scaling policy name: Usage-too-small
+CloudWatch alarm: Workshop-CPU-Usage-Too-Small
+Take the action: Remove 1 capacity units
+And then wait: 300 seconds
+```
+
+* Open `Details` tab.
+* Click `Edit` in `Group Details` block. 
+
+```yaml
+Desired capacity: 1
+Minimum capacity: 1
+Maximum capacity: 2
+```
+
+#### Verify scaling
+
+* Enter on instance using SSH.
+
+```bash
+sudo apt install stress
+stress --cpu 1
+```
+
+* Wait until instance amount become 2.
+* Verify that you are able to log in.
+
+**NB: Page reload should cause redirect to log in page.**
+
+#### Enable stickiness
+
+* Go to `EC2/Load Balancing/Target Groups`.
+* Click on `product-service-nodes` in order to open details.
+* Open `Attributes` tab and click `Edit`.
+
+```yaml
+Deregistration delay: 300 seconds
+Slow start duration: 0 seconds
+
+Load balancing algorithm:
+  Round robin: Yes
+
+Stickiness:
+  Stickiness type: Load balancer generated cookie
+
+Stickiness duration: 8 hours
+```
+
+* Verify that login currently works.
+
+**NB: ALB have its own mechanism of stickiness, but it works with distribution across target groups. 
+So you should use stickiness on target group level.**
 
 ## Store data in EFS
+
+* Go to `EFS/File systems`
+* Click `Create file system`
+
+```yaml
+General:
+  Name: Workshop-Disk
+  Availability and duration: Regional
+
+  Automatic backups:
+    Enable automatic backups: Yes
+
+  Lifecycle management:
+    Transition into IA: 30 days since last access
+    Transition out of IA: On first access
+
+  Performance mode: General Purpose
+  Throughput mode: Bursting
+
+  Encryption:
+    Enable encryption of data at rest: Yes
+
+Tags:
+  Role: Workshop
+
+Network:
+  Virtual Private Cloud (VPC): default
+  Mount Targets: <keep-it-in-all-az>
+```
+
+### Mount to instances
+
 TBD

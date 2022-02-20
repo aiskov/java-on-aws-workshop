@@ -131,45 +131,54 @@ Data will be shared using network file system - EFS.
 5. Configure multiple instance and auto scaling
    1. One on demand instance
    2. +2 spot instances
+   3. Set up scaling based rule:
+      1. +1 when CPU > 80
+      2. -1 when CPU < 30
+   4. Apply rolling update by changing instance type 
+   5. Ensure that user able normally login and use service with two servers.
 6. Store data in EFS
 
-### Step 4 - Introduce CI/CD 
+### Step 4 - Use AWS services
 
+**ToDo:**
+1. Use S3 to store files
+   1. Replace EFS store with S3
+2. Use Redis to cache response
+3. Use Dynamo to keep session
+   1. Remove stickiness
+   2. Store session in Dynamo
+4. Use SNS
+   1. Send notification about new files uploaded.
+   2. Receive email notification.
+5. Use SQS
+   1. Write request for image format to SQS
+   2. Read and process request for image formatting from SQS
+
+### Step 5 - Introduce CI/CD
 TBD
 
-### Step 5 - Use caches
-
+### Step 6 - Dockerize application
 TBD
 
-### Step 6 - Migrate to S3 object store
-
+### Step 7 - Configure monitoring, tracing & metrics
 TBD
 
-### Step 7 - Dockerize application
-
+### Step 8 - Migrate to Cognito
 TBD
 
-### Step 8 - Configure monitoring, tracing & metrics
-
+### Step 9 - Extract part of functionality to Lambda
 TBD
 
-### Step 9 - Migrate to Cognito
-
+### Step 10 - Configure image processing after upload
 TBD
 
-### Step 10 - Extract part of functionality to Lambda
-
+### Step 11 - Migrate docker part to Kubernates
 TBD
 
-### Step 11 - Configure image processing after upload
-
-TBD
-
-### Step 12 - Migrate docker part to Kubernates
-
-TBD
-
-### Step 13 - Automate configuration
+### Step 12 - Automate configuration
 
 #### Option 1: Using CloudFormation
+TBD
+
 #### Option 2: Using Terraform
+TBD

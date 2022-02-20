@@ -1,5 +1,3 @@
-# Hints for step 2
-
 - [Hints for step 2](#hints-for-step-2)
   - [Create RDS database - MySQL](#create-rds-database---mysql)
     - [Add tags](#add-tags)
@@ -31,6 +29,8 @@
     - [Start application after restarts](#start-application-after-restarts)
     - [Assign Elastic IP](#assign-elastic-ip)
     - [Verify installation](#verify-installation)
+
+# Hints for step 2
 
 ## Create RDS database - MySQL
 1. Go to AWS Console/Services/RDS
