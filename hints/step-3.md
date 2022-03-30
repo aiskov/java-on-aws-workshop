@@ -1020,4 +1020,93 @@ Network:
 
 ### Mount to instances
 
+#### Allow accessing using IAM
+
+* Go to `IAM/Access Management/Policies`.
+* Click `Create Policy`
+
+```json
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "Rule",
+            "Effect": "Allow",
+            "Action": [
+                "elasticfilesystem:ClientMount",
+                "elasticfilesystem:ClientWrite"
+            ],
+            "Resource": "arn:aws:elasticfilesystem:eu-west-1:669171167111:file-system/fs-0b797a9b7a4b06d1d"
+        }
+    ]
+}
+```
+
+* Then continue configuration
+
+```yaml
+Tags:
+    Role: Workshop
+
+Name: Product-Service-EFS-Access
+Description: Access to EFS of product service.
+```
+
+* Go to `IAM/Access Management/Roles`.
+* Find `Product-Service-Instance`, and click on it.
+* Click `Attach policies`.
+* Find `Product-Service-Params-Load` and select it.
+* Click `Attach policy` at the bottom of the screen.
+
+#### Allow accessing using SG
+
+TODO: Change to create specific SG in order to allow 
+
+* Go to `EFS/File System`
+* Click by name `Workshop-Disk`
+* Open `Network` tab
+* Copy value from `Security Group`
+* Go to `EC2/Network & Security/Security Groups`
+* Find & open security group by id used in EFS
+* Click `Edit inbound rules`
+* Ensure that rule exists
+
+```yaml
+Type: All Traffic
+Protocol: All
+Port range: All
+Source: <id-of-product-service>
+```
+
+#### Test connection
+On your instance execute
+
+```shell
+cd
+sudo apt-get update
+sudo apt-get -y install git binutils
+git clone https://github.com/aws/efs-utils
+cd efs-utils/
+./build-deb.sh
+sudo apt-get -y install ./build/amazon-efs-utils*deb
+
+sudo mount -t efs <efs-io> /mnt/efs
+
+dd if=/dev/zero of=testfile bs=1024 count=102400
+```
+
+#### Configure automatic
+
+```shell
+sudo nano /etc/fstab
+```
+
+```
+file-system-id:/ /mnt/efs efs _netdev,noresvport,tls,iam 0 0
+```
+
+#### Create new version of AMI
+
 TBD
+
+`Workshop-Product-App-AMI-v02`

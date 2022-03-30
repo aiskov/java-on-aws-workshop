@@ -47,19 +47,24 @@ EBS:
     Uuid: # Example: b89e8beb-e65b-48af-8a75-c1e9d789d801
 
 ELB: 
-    Host: # Example: http://workshop-lb-42913877.eu-west-1.elb.amazonaws.com/
-    Name: # Example Workshop-LB
-    Security Group:
-        Id: # Example: sg-1f0a255d
-        Name: # Workshop-LB-SG
+  Host: # Example: http://workshop-lb-42913877.eu-west-1.elb.amazonaws.com/
+  Name: # Example Workshop-LB
+  Security Group:
+    Id: # Example: sg-1f0a255d
+    Name: # Workshop-LB-SG
 
 S3:
   - Name: # Example artifact-store-c1e9d789d801
     ARN: # arn:aws:s3:::artifact-store-c1e9d789d801
     URI: # Example s3://artifact-store-c1e9d789d801
+
+EFS: 
+  Id: # Example fs-0b797a9b7a4b06d1d
+  Security Group: # Example sg-081df38df2ffecf9e
 ```
 
 ## User data draft
+
 ```bash
 #!/bin/bash
 aws s3 cp s3://artifact-store-c1e9d789d801/products-1.jar /opt/product-service/
