@@ -1102,11 +1102,33 @@ sudo nano /etc/fstab
 ```
 
 ```
-file-system-id:/ /mnt/efs efs _netdev,noresvport,tls,iam 0 0
+<efs-id>:/ /mnt/efs efs _netdev,noresvport,tls,iam 0 0
 ```
 
 #### Create new version of AMI
 
-TBD
+* Go to `EC2/Instaces`
+* Select your current instance and click `Actions/Image and templates/Create Image`.
 
-`Workshop-Product-App-AMI-v02`
+```yaml
+Name: Workshop-Product-App-AMI-v02
+Description: Image for product app
+No reboot: Enable
+Instance volumes: # Keep as it is
+Tags: 
+  Role: Workshop
+```
+
+* Go to `EC2/Instances/Launch Templates`
+* Select `Workshop-Product-Template` and click `Actions/Modify template`
+* Scroll to `Application and OS Images (Amazon machine Image)`
+* Open `My AMIs` tab
+* Switch dropdown to `Workshop-Product-App-AMI-v02`
+* Save change
+
+* Go to `EC2/Auto Scaling/Auto Scaling groups`
+* Open `Workshop-Product-SG`
+* In `Details/Launch template` click `Edit`
+* Select latest version in dropdown
+
+* Refresh instances.
