@@ -3,7 +3,7 @@ version: '3.7'
 services:
   db:
     image: mysql
-    #    image: arm64v8/mysql:oracle For ARM/M1
+#    image: arm64v8/mysql:oracle
     environment:
       MYSQL_ROOT_PASSWORD: toor
       MYSQL_DATABASE: service_db
