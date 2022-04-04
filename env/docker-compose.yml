@@ -3,7 +3,7 @@ version: '3.7'
 services:
   db:
     image: mysql
-    #    image: arm64v8/mysql:oracle For ARM/M1
+    #image: arm64v8/mysql:oracle
     environment:
       MYSQL_ROOT_PASSWORD: toor
       MYSQL_DATABASE: service_db
@@ -11,3 +11,9 @@ services:
       - ./data.sql:/docker-entrypoint-initdb.d/data.sql
     ports:
       - 3306:3306
+
+#  redis:
+#    image: redis
+#    command: redis-server --save 20 1 --loglevel warning --requirepass eYVX7EwVmmxKPCDmwMtyKVge8oLd2t81
+#    ports:
+#      - 6379:6379
