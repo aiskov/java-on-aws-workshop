@@ -8,16 +8,15 @@ Instruction for workshop
     - [Step 1 - Run application locally hints](#step-1---run-application-locally-hints)
     - [Step 2 - Deploy application hints](#step-2---deploy-application-hints)
     - [Step 3 - Use multiple instance hints](#step-3---use-multiple-instance-hints)
-    - [Step 4 - Introduce CI/CD](#step-4---introduce-cicd)
-    - [Step 5 - Use caches](#step-5---use-caches)
-    - [Step 6 - Migrate to S3 object store](#step-6---migrate-to-s3-object-store)
-    - [Step 7 - Dockerize application](#step-7---dockerize-application)
-    - [Step 8 - Configure monitoring, tracing & metrics](#step-8---configure-monitoring-tracing--metrics)
-    - [Step 9 - Migrate to Cognito](#step-9---migrate-to-cognito)
-    - [Step 10 - Extract part of functionality to Lambda](#step-10---extract-part-of-functionality-to-lambda)
-    - [Step 11 - Configure image processing after upload](#step-11---configure-image-processing-after-upload)
-    - [Step 12 - Migrate docker part to Kubernates](#step-12---migrate-docker-part-to-kubernates)
-    - [Step 13 - Automate configuration](#step-13---automate-configuration)
+    - [Step 4 - Use AWS services hints](#step-4---use-aws-services-hints)
+    - [Step 5 - Introduce CI/CD](#step-5---introduce-cicd)
+    - [Step 6 - Dockerize application](#step-6---dockerize-application)
+    - [Step 7 - Configure monitoring, tracing & metrics](#step-7---configure-monitoring-tracing--metrics)
+    - [Step 8 - Migrate to Cognito](#step-8---migrate-to-cognito)
+    - [Step 9 - Extract part of functionality to Lambda](#step-9---extract-part-of-functionality-to-lambda)
+    - [Step 10 - Configure image processing after upload](#step-10---configure-image-processing-after-upload)
+    - [Step 11 - Migrate docker part to Kubernates](#step-11---migrate-docker-part-to-kubernates)
+    - [Step 12 - Automate configuration](#step-12---automate-configuration)
       - [Option 1: Using CloudFormation](#option-1-using-cloudformation)
       - [Option 2: Using Terraform](#option-2-using-terraform)
 
@@ -94,14 +93,14 @@ Goal is to deploy application as it is.
 
 **Control Questions:**
 1. Describe configuration properties that will be different on production and why?
-1. What could be a problem for that installation? 
-1. How we can scale that application?
-1. Is our data safe?
+2. What could be a problem for that installation? 
+3. How can we scale that application?
+4. Is our data safe?
 
 **Achievements:**
 1. We have managed database, so we have simplified maintains.
-1. Application deployed on cloud.
-1. We have basic failover for cases when application failures or server could be restarted.
+2. Application deployed on cloud.
+3. We have basic failover for cases when application failures or server could be restarted.
 
 ### Step 3 - Use multiple instance [hints](hints/step-3.md)
 Goal is to create installation that deployed in several Availability Zones, use Load Balancer and Auto Scaling in order 
@@ -122,8 +121,9 @@ Data will be shared using network file system - EFS.
    1. Bucket name: `artifact-store-<some-unique-id>`
    2. Put your jar to bucket
 3. Externalize application configuration
-   1. Use AWS Param Store in order to store properties
-   2. https://towardsaws.com/how-to-externalize-spring-boot-properties-to-an-aws-system-manager-parameter-store-2a945b1e856f
+   1. Use AWS Param Store in order to store properties 
+   2. Use `org.springframework.cloud:spring-cloud-starter-aws-parameter-store-config`
+   3. https://towardsaws.com/how-to-externalize-spring-boot-properties-to-an-aws-system-manager-parameter-store-2a945b1e856f
 4. Automate node configuration
    1. Create AMI
    2. Add User Data
@@ -137,13 +137,43 @@ Data will be shared using network file system - EFS.
    4. Apply rolling update by changing instance type 
    5. Ensure that user able normally login and use service with two servers.
 6. Store data in EFS
+   1. Mount EFS file system and configure to use it as storage in application.
+   2. Update AMI in order to mount that file system automatically on 
 
-### Step 4 - Use AWS services
+**Control Questions:**
+1. How do we able configure installation to scale before predicated high load?
+2. How do wa able use param store with different environments?
+3. How could we describe our deployment procedure?
+4. How does scale in affects to users? 
+
+**Achievements:**
+1. We have application that able to scale and heal itself in case of node failure.
+2. Node configured using external properties source that could be updated on the fly.
+3. We are able to apply rolling updates on application.
+4. We increase security because now users doesn't see concrete servers, but load balancer.
+
+### Step 4 - Use AWS services [hints](hints/step-3.md)
+Goal is to optimize work of the service using AWS services. 
+
+We prefer to use S3 in order to minimize costs of storage, add versioning and shared links.
+
+Use shared cache in order to provide better performance, and minimize amount of request to AWS API's from different
+application instances.
 
 **ToDo:**
 1. Use S3 to store files
    1. Replace EFS store with S3
+   2. Use `software.amazon.awssdk:s3`
+   3. Download files from S3 using application as a proxy
+   4. Upload files to S3 using application as a proxy
+   5. Generate pre signed link to share files without authentication
+   6. (Not ready) Enable versioning, allow receiving previous versions of the file.
 2. Use Redis to cache response
+   1. Add redis to local environment
+   2. Use
+      1. `org.springframework.boot:spring-boot-starter-data-redis`
+      2. `org.springframework.boot:spring-boot-starter-cache`
+   3. Implement caching of shared links with TTL 1day
 3. Use Dynamo to keep session
    1. Remove stickiness
    2. Store session in Dynamo
@@ -153,6 +183,12 @@ Data will be shared using network file system - EFS.
 5. Use SQS
    1. Write request for image format to SQS
    2. Read and process request for image formatting from SQS
+
+**Control Questions:**
+1. TBD
+
+**Achievements:**
+1. TBD
 
 ### Step 5 - Introduce CI/CD
 TBD

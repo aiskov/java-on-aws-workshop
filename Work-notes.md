@@ -66,6 +66,10 @@ EFS:
 ## User data draft
 
 ```bash
+aws s3 cp target/products-1.jar s3://artifact-store-c1e9d789d801/
+```
+
+```bash
 #!/bin/bash
 aws s3 cp s3://artifact-store-c1e9d789d801/products-1.jar /opt/product-service/
 systemctl restart app-product.service

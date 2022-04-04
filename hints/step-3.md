@@ -31,6 +31,11 @@
       - [Enable stickiness](#enable-stickiness)
   - [Store data in EFS](#store-data-in-efs)
     - [Mount to instances](#mount-to-instances)
+      - [Allow accessing using IAM](#allow-accessing-using-iam)
+      - [Allow accessing using SG](#allow-accessing-using-sg)
+      - [Test connection](#test-connection)
+      - [Configure automatic](#configure-automatic)
+      - [Create new version of AMI](#create-new-version-of-ami)
 
 # Hints for step 3
 
