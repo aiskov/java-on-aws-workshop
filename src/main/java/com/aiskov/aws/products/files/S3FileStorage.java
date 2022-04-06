@@ -2,6 +2,8 @@ package com.aiskov.aws.products.files;
 
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Component;
 import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.core.sync.RequestBody;
@@ -15,6 +17,7 @@ import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignReques
 import java.io.InputStream;
 import java.time.Duration;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class S3FileStorage {
@@ -49,7 +52,10 @@ public class S3FileStorage {
                 .build();
     }
 
+    @Cacheable(value = "share-urls")
     public String presignUrl(String file) {
+        log.info("Generation link for {}", file);
+
         GetObjectPresignRequest request = GetObjectPresignRequest.builder()
                 .getObjectRequest(GetObjectRequest.builder()
                         .bucket(BUCKET)
