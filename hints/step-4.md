@@ -8,9 +8,10 @@
     - [Modify application](#modify-application-1)
     - [Create security group](#create-security-group)
     - [Create redis instance](#create-redis-instance)
-  - [Use Dynamo to keep session](#use-dynamo-to-keep-session)
+    - [Create configuration](#create-configuration)
+    - [Refresh and deploy app](#refresh-and-deploy-app)
     - [Remove stickiness](#remove-stickiness)
-    - [Store session in Dynamo](#store-session-in-dynamo)
+    - [Store session in Redis](#store-session-in-redis)
   - [Use SNS](#use-sns)
     - [Send notification about new files uploaded.](#send-notification-about-new-files-uploaded)
     - [Receive email notification.](#receive-email-notification)
@@ -207,12 +208,10 @@ Tags:
 
 TBD
 
-## Use Dynamo to keep session
-
 ### Remove stickiness
 TBD
 
-### Store session in Dynamo
+### Store session in Redis
 TBD
 
 ## Use SNS
