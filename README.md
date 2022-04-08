@@ -168,16 +168,19 @@ application instances.
    5. Generate pre signed link to share files without authentication
 2. Use Redis to cache response
    1. Add redis to local environment
-   2. Use
+   2. Configure password authentication
+   3. Use
       1. `org.springframework.boot:spring-boot-starter-data-redis`
       2. `org.springframework.boot:spring-boot-starter-cache`
-   3. Implement caching of shared links with TTL 1day (Cache-Aside)
+      3. NB: it better to use `jedis` than `lettuce` because of possible problems with TLS. 
+   4. Implement caching of shared links with TTL 1day (Cache-Aside)
       1. https://www.baeldung.com/spring-boot-redis-cache
-   4. Implement caching of entities (Write-Through)
+   5. Implement caching of entities (Write-Through)
       1. https://www.baeldung.com/spring-data-redis-tutorial
-   5. Implement sessuin store 
-      1. https://spring.io/projects/spring-session
-   6. Use password for authentication
+   6. Implement session store
+      1. `org.springframework.session:spring-session-data-redis`
+      2. https://spring.io/projects/spring-session
+   7. Client for troubleshooting https://computingforgeeks.com/how-to-install-redis-on-ubuntu/
 3. Use SNS
    1. Send notification about new files uploaded.
    2. Receive email notification.
@@ -188,13 +191,15 @@ application instances.
 **Control Questions:**
 1. How can we use S3 versioning?
 2. Do we able to use S3 presigned urls to upload files?
-3. How could system work in case of redis fault?
-4. How should we configure Redis timeouts?
+3. How should we configure TTL?
+4. How could system work in case of redis fault?
+5. How should we configure Redis timeouts?
+6. How redis sessions could affect local environment?
 
 **Achievements:**
 1. We use more flexible storage, that provides additional functionality as versioning and direct access.
-2. We able to use cache to provide better performance and minmize load to database.
-3. We may switch stick sessiong on load balancer.    
+2. We are able to use cache to provide better performance and minimize load to database.
+3. We may switch stick sessions on load balancer.
 
 ### Step 5 - Introduce CI/CD and Dev environments
 TBD
