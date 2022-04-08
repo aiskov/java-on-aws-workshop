@@ -27,12 +27,14 @@ public class ProductService {
     public void init() {
         try {
             if (this.cachedProductRepository.count() == 0) {
+                log.info("Initializing Write-Through cache.");
                 this.cachedProductRepository.saveAll(this.productRepository.findAll().stream()
                         .map(this::mapToCachedProduct)
                         .collect(toList()));
+                log.info("Write-Through cache initialized.");
             }
         } catch (Exception exp) {
-            log.warn("Unable load");
+            log.warn("Unable load", exp);
         }
     }
 
@@ -61,8 +63,11 @@ public class ProductService {
     // Return empty optional in case of failure
     private List<CachedProduct> retrieveProductFromCache() {
         try {
-            return convertToList(this.cachedProductRepository.findAll());
+            List<CachedProduct> cachedProducts = convertToList(this.cachedProductRepository.findAll());
+            log.info("Read from cache");
+            return cachedProducts;
         } catch (Exception exp) {
+            log.info("Unable to read from cache", exp);
             return List.of();
         }
     }
