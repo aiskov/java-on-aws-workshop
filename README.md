@@ -9,14 +9,13 @@ Instruction for workshop
     - [Step 2 - Deploy application hints](#step-2---deploy-application-hints)
     - [Step 3 - Use multiple instance hints](#step-3---use-multiple-instance-hints)
     - [Step 4 - Use AWS services hints](#step-4---use-aws-services-hints)
-    - [Step 5 - Introduce CI/CD](#step-5---introduce-cicd)
+    - [Step 5 - Introduce CI/CD and Dev environments](#step-5---introduce-cicd-and-dev-environments)
     - [Step 6 - Dockerize application](#step-6---dockerize-application)
     - [Step 7 - Configure monitoring, tracing & metrics](#step-7---configure-monitoring-tracing--metrics)
     - [Step 8 - Migrate to Cognito](#step-8---migrate-to-cognito)
     - [Step 9 - Extract part of functionality to Lambda](#step-9---extract-part-of-functionality-to-lambda)
-    - [Step 10 - Configure image processing after upload](#step-10---configure-image-processing-after-upload)
-    - [Step 11 - Migrate docker part to Kubernates](#step-11---migrate-docker-part-to-kubernates)
-    - [Step 12 - Automate configuration](#step-12---automate-configuration)
+    - [Step 10 - Migrate docker part to Kubernates](#step-10---migrate-docker-part-to-kubernates)
+    - [Step 11 - Automate configuration](#step-11---automate-configuration)
       - [Option 1: Using CloudFormation](#option-1-using-cloudformation)
       - [Option 2: Using Terraform](#option-2-using-terraform)
 
@@ -152,7 +151,7 @@ Data will be shared using network file system - EFS.
 3. We are able to apply rolling updates on application.
 4. We increase security because now users doesn't see concrete servers, but load balancer.
 
-### Step 4 - Use AWS services [hints](hints/step-3.md)
+### Step 4 - Use AWS services [hints](hints/step-4.md)
 Goal is to optimize work of the service using AWS services. 
 
 We prefer to use S3 in order to minimize costs of storage, add versioning and shared links.
@@ -167,30 +166,37 @@ application instances.
    3. Download files from S3 using application as a proxy
    4. Upload files to S3 using application as a proxy
    5. Generate pre signed link to share files without authentication
-   6. (Not ready) Enable versioning, allow receiving previous versions of the file.
 2. Use Redis to cache response
    1. Add redis to local environment
    2. Use
       1. `org.springframework.boot:spring-boot-starter-data-redis`
       2. `org.springframework.boot:spring-boot-starter-cache`
-   3. Implement caching of shared links with TTL 1day
-3. Use Dynamo to keep session
-   1. Remove stickiness
-   2. Store session in Dynamo
-4. Use SNS
+   3. Implement caching of shared links with TTL 1day (Cache-Aside)
+      1. https://www.baeldung.com/spring-boot-redis-cache
+   4. Implement caching of entities (Write-Through)
+      1. https://www.baeldung.com/spring-data-redis-tutorial
+   5. Implement sessuin store 
+      1. https://spring.io/projects/spring-session
+   6. Use password for authentication
+3. Use SNS
    1. Send notification about new files uploaded.
    2. Receive email notification.
-5. Use SQS
+4. Use SQS
    1. Write request for image format to SQS
    2. Read and process request for image formatting from SQS
 
 **Control Questions:**
-1. TBD
+1. How can we use S3 versioning?
+2. Do we able to use S3 presigned urls to upload files?
+3. How could system work in case of redis fault?
+4. How should we configure Redis timeouts?
 
 **Achievements:**
-1. TBD
+1. We use more flexible storage, that provides additional functionality as versioning and direct access.
+2. We able to use cache to provide better performance and minmize load to database.
+3. We may switch stick sessiong on load balancer.    
 
-### Step 5 - Introduce CI/CD
+### Step 5 - Introduce CI/CD and Dev environments
 TBD
 
 ### Step 6 - Dockerize application
@@ -205,13 +211,10 @@ TBD
 ### Step 9 - Extract part of functionality to Lambda
 TBD
 
-### Step 10 - Configure image processing after upload
+### Step 10 - Migrate docker part to Kubernates
 TBD
 
-### Step 11 - Migrate docker part to Kubernates
-TBD
-
-### Step 12 - Automate configuration
+### Step 11 - Automate configuration
 
 #### Option 1: Using CloudFormation
 TBD

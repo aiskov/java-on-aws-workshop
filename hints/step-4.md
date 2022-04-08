@@ -1,9 +1,13 @@
 - [Hints for step 4](#hints-for-step-4)
   - [Use S3 to store files](#use-s3-to-store-files)
-    - [Replace EFS store with S3](#replace-efs-store-with-s3)
-      - [Create S3 bucket](#create-s3-bucket)
-      - [Modify applicaion](#modify-applicaion)
+    - [Create S3 bucket](#create-s3-bucket)
+    - [Modify application](#modify-application)
+    - [Add access rights](#add-access-rights)
+    - [Update application](#update-application)
   - [Use Redis to cache response](#use-redis-to-cache-response)
+    - [Modify application](#modify-application-1)
+    - [Create security group](#create-security-group)
+    - [Create redis instance](#create-redis-instance)
   - [Use Dynamo to keep session](#use-dynamo-to-keep-session)
     - [Remove stickiness](#remove-stickiness)
     - [Store session in Dynamo](#store-session-in-dynamo)
@@ -18,9 +22,7 @@
 
 ## Use S3 to store files
 
-### Replace EFS store with S3
-
-#### Create S3 bucket
+### Create S3 bucket
 
 * Go to `S3`
 * Click `Create bucket`
@@ -38,11 +40,11 @@ Advanced settings:
   Object Lock: Disable
 ```
 
-#### Modify application
+### Modify application
 
 * Check changes on `S3` branch.
 
-#### Add access rights
+### Add access rights
 
 * Go to `IAM/Policies`
 * Click `Create policy`
@@ -78,7 +80,7 @@ Description: Access to S3 product service.
 * Find and select `Product-Service-S3`
 * Click `Attach policies`
 
-#### Update application
+### Update application
 
 * Build new version of application.
 
@@ -95,6 +97,113 @@ aws s3 cp ./target/products-1.jar s3://<artifact-store-bucket>/
 * Click `Start instance refresh` and proceed 
 
 ## Use Redis to cache response
+
+### Modify application
+
+* Check changes on `redis` branch.
+
+### Create security group
+
+* Go to `EC2/Network & Security/Security Groups`
+* Click `Create security group`
+
+```yaml
+Basic:
+  Security group name: workshop-cache-security-group
+  Description: Redis workshop cache security group
+
+Inbound rules:
+  - Type: Custom TCP
+    Port Range: 6369
+    Source: <ec2-security-group>
+    Description: Access from ec2 to redis
+```
+
+### Create redis instance
+
+* Go to `ElastiCache/Redis`
+* Click `Create`
+
+```yaml
+Cluster engine: Redis
+Cluster mode enabled: false
+
+Location: Amazon Cloud
+
+Redis settings:
+  Name: workshop-cache
+  Description: Workshop cache instance
+  Engine version compatibility: 6.2
+  Port: 6379
+  Parameter group: default.redis6x
+  Node type: cache.t3.micro
+  Number of replicas: 1
+  Multi-AZ: false
+  
+Advanced Redis settings:
+  Subnet group: Create new
+  Name: workshop-cache-subnet-group
+  Description: Workshop cache subnet group
+  VPC ID: <vpc-id>
+  Subnets:
+    <subnet-id-1>: true
+    <subnet-id-2>: true
+  Availability zones placement: No preference
+
+Security:
+  Security groups: default (sg-1f0a255d)
+  Encryption at-rest: false
+  Encryption in-transit: true
+
+Logs:
+  Slow log: false
+  Engine log: false
+
+Import data to cluster: None
+
+Backup:
+  Enable automatic backups: false
+
+Maintenance:
+  Maintenance window: No preference
+  Topic for SNS notification: Disable notifications
+  
+Tags:
+  Role: Workshop
+```
+
+### Create configuration
+
+* Go to `AWS Systems Manager/Application Management/Parameter Store`
+* Click `Create parameter`
+
+```yaml
+- Name: /config/product-service_prod/spring.redis.host
+    Tier: Standard
+    Type: String
+  Data Type: text
+    Value: <redis-master-host>
+      
+- Name: /config/product-service_prod/spring.redis.database
+    Tier: Standard
+    Type: String
+  Data Type: text
+    Value: 1   
+    
+- Name: /config/product-service_prod/spring.redis.password
+    Tier: Standard
+    Type: String
+  Data Type: text
+    Value: <redis-password>
+
+- Name: /config/product-service_prod/spring.redis.ssl
+    Tier: Standard
+    Type: String
+  Data Type: text
+    Value: true
+```
+
+### Refresh and deploy app
 
 TBD
 
