@@ -206,13 +206,40 @@ Tags:
 
 ### Refresh and deploy app
 
-TBD
+* Build new version of application.
+
+```shell
+mvn clean package
+aws s3 cp ./target/products-1.jar s3://<artifact-store-bucket>/
+```
+
+* Go to `EC2/Auto Scaling/Auto Scaling Groups`
+* Open `Workshop-Product-SG`
+* Click `Edit` in `Launch template`
+* Switch version to previous one and save.
+* Open `Instance refresh` tab
+* Click `Start instance refresh` and proceed
 
 ### Remove stickiness
-TBD
 
-### Store session in Redis
-TBD
+Go to `EC2/Load Balancing/Target Groups`.
+* Click on `product-service-nodes` in order to open details.
+* Open `Attributes` tab and click `Edit`.
+
+```yaml
+Deregistration delay: 300 seconds
+Slow start duration: 0 seconds
+
+Load balancing algorithm:
+  Round robin: Yes
+
+Stickiness:
+  Stickiness type: Load balancer generated cookie
+
+Stickiness duration: 8 hours
+```
+
+* Verify that login still works.
 
 ## Use SNS
 ### Send notification about new files uploaded.

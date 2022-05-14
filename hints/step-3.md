@@ -1007,7 +1007,7 @@ General:
 
   Lifecycle management:
     Transition into IA: 30 days since last access
-    Transition out of IA: On first access
+    Transition out of IA: On init access
 
   Performance mode: General Purpose
   Throughput mode: Bursting

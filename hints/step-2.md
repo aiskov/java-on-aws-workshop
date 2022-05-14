@@ -361,19 +361,20 @@ Click on `Instance state` and choose `Start instance` it could take several minu
 Your disk will be probably at the end of the list with name `xvdf`, verify that it have no mount point and have correct 
 size.
 
-Then you should add prefix `/dev/` to that name and save it in workbook.
+Then you should use that name as `ebs-drive-location`. As example if your drive name is `xvdf` you should use 
+`/dev/xvdf` as `ebs-drive-location` in next script.
 
 Create file system using:
 
 ```shell
-> sudo mkfs -t xfs <ebs-drive-location> # Create file system and mount it
-> sudo file -s <ebs-drive-location> # Verify that drive have FS
-/dev/xvdf: SGI XFS filesystem data (blksz 4096, inosz 512, v2 dirs)
-> sudo mkdir /var/product-files # Prepare directory to mount
-> sudo mount <ebs-drive-location> /var/product-files # Try to mount
-> sudo chgroup ubuntu /var/product-files # Transfer directory from root group to ubuntu
-> sudo chmod 770 /var/product-files # Change access rights to allow full access to directory from owner group
-> echo "Hi!" > /var/product-files/test.txt # Check your access rights by creation of test.txt file
+sudo mkfs -t xfs <ebs-drive-location> # Create file system and mount it
+sudo file -s <ebs-drive-location> # Verify that drive have FS
+  /dev/xvdf: SGI XFS filesystem data (blksz 4096, inosz 512, v2 dirs)
+sudo mkdir /var/product-files # Prepare directory to mount
+sudo mount <ebs-drive-location> /var/product-files # Try to mount
+sudo chgrp ubuntu /var/product-files # Transfer directory from root group to ubuntu
+sudo chmod 770 /var/product-files # Change access rights to allow full access to directory from owner group
+echo "Hi!" > /var/product-files/test.txt # Check your access rights by creation of test.txt file
 ```
 
 Currently, you still have no configuration to mount that directory automatically on instance start.
@@ -381,7 +382,7 @@ Currently, you still have no configuration to mount that directory automatically
 Execute `lsblk` and copy UUID from your drive row 
 
 ```shell
-> sudo lsblk -o +UUID 
+sudo lsblk -o +UUID 
 ```
 
 Edit `/etc/fstab` and next line at the end replacing placeholder with your drive UUID.
@@ -428,6 +429,7 @@ On your host and project directory
 On instance
 
 ```shell
+> sudo apt update
 > sudo apt install -y openjdk-17-jre-headless # Install java
 > cd /opt/product-service # Go to app directory
 > java -jar products-1.jar # Try to run application
@@ -559,7 +561,7 @@ Try to kill process to verify restart. On instance:
                 # NB: Replace PID with those that you receive in status
 ```
 
-Then check status you may take different responses, first option that service will be still disabled. Then wait for a 
+Then check status you may take different responses, init option that service will be still disabled. Then wait for a 
 while and retry.
 
 ```bash
@@ -575,7 +577,7 @@ while and retry.
 ```
 
 Other option that you will receive status active but PID will be different as on example 
-(first was 945 and new one is 983).
+(init was 945 and new one is 983).
 
 ```bash
 sudo systemctl status app-product.service

@@ -144,6 +144,7 @@ Data will be shared using network file system - EFS.
 2. How do wa able use param store with different environments?
 3. How could we describe our deployment procedure?
 4. How does scale in affects to users? 
+5. What is the difference between stickiness in routing rule and in target group? 
 
 **Achievements:**
 1. We have application that able to scale and heal itself in case of node failure.
