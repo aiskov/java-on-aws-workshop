@@ -1,4 +1,4 @@
-# Cheat sheet 3
+# Cheat sheet 2
 
 ## Locations
 
